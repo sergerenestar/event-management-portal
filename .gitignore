@@ -1,0 +1,234 @@
+# ============================================================
+# Event Management Portal — .gitignore
+# Stack: React (Vite) · ASP.NET Core (.NET 8) · Terraform · Docker
+# ============================================================
+
+
+# ============================================================
+# SECRETS — Never commit these
+# ============================================================
+*.env
+.env
+.env.*
+!.env.example
+!.env.*.example
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+!appsettings.json
+!appsettings.*.example.json
+**/secrets.json
+**/local.settings.json
+*.pfx
+*.p12
+*.pem
+*.key
+*.crt
+*.cer
+terraform.tfvars
+!terraform.tfvars.example
+*.tfvars
+!*.tfvars.example
+
+
+# ============================================================
+# FRONTEND — React / Vite / Node
+# ============================================================
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.vite/
+frontend/coverage/
+frontend/.eslintcache
+frontend/*.local
+
+# Vite / TS build artifacts
+*.tsbuildinfo
+
+# Test output
+frontend/test-results/
+frontend/playwright-report/
+
+# OS / editor noise inside frontend
+frontend/.DS_Store
+frontend/Thumbs.db
+
+
+# ============================================================
+# BACKEND — ASP.NET Core / .NET 8
+# ============================================================
+
+# Build output
+backend/**/bin/
+backend/**/obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.userprefs
+*.sln.docstates
+
+# Visual Studio
+.vs/
+*.rsuser
+*.VC.db
+*.VC.VC.opendb
+
+# Rider / JetBrains
+.idea/
+*.DotSettings.user
+
+# Test results
+backend/**/TestResults/
+backend/**/*.trx
+backend/**/*.coverage
+backend/**/*.coveragexml
+backend/**/coverage/
+
+# Publish output
+backend/**/publish/
+backend/**/PublishProfiles/
+
+# NuGet
+backend/**/*.nupkg
+backend/**/*.snupkg
+backend/**/packages/
+backend/**/.nuget/
+
+
+# ============================================================
+# INFRASTRUCTURE — Terraform
+# ============================================================
+
+# Local state — never commit state files
+infra/**/.terraform/
+infra/**/*.tfstate
+infra/**/*.tfstate.*
+infra/**/.terraform.lock.hcl
+
+# Crash log files
+infra/**/crash.log
+infra/**/crash.*.log
+
+# Override files (local only)
+infra/**/override.tf
+infra/**/override.tf.json
+infra/**/*_override.tf
+infra/**/*_override.tf.json
+
+# Terraform plan output files (can contain secrets)
+infra/**/*.tfplan
+
+
+# ============================================================
+# DOCKER — Local dev artifacts
+# ============================================================
+docker-compose.override.yml
+.docker/
+
+
+# ============================================================
+# SPEC KIT — .specify directory
+# ============================================================
+
+# Keep everything in .specify EXCEPT local memory and task state
+# that is machine-specific or contains runtime-generated content
+
+# Agent memory is runtime context, not source truth
+.specify/memory/
+
+# Tasks are generated outputs — regenerate with /tasks
+.specify/tasks/
+
+# Keep committed:
+# .specify/constitution.md       ← source of truth
+# .specify/specs/                ← all spec files
+# .specify/templates/            ← prompt templates
+# .specify/scripts/              ← bash helper scripts
+# .specify/decisions/            ← ADRs
+# .specify/init-options.json     ← project init config
+
+
+# ============================================================
+# OS — macOS / Windows / Linux
+# ============================================================
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+
+# ============================================================
+# EDITORS & IDEs
+# ============================================================
+
+# VS Code (keep shared settings, ignore personal)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# Visual Studio
+*.suo
+*.ntvs*
+*.njsproj
+*.sln.docstates
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Cursor / Windsurf / other AI editors
+.cursor/
+.windsurf/
+
+
+# ============================================================
+# LOGS & RUNTIME
+# ============================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# .NET runtime logs
+*.nlog
+
+
+# ============================================================
+# MISC
+# ============================================================
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.bak
+*.orig
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+
+# Generated docs (build output, not source)
+docs/generated/

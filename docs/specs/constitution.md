@@ -1,26 +1,3 @@
-<!--
-SYNC IMPACT REPORT
-==================
-Version change: [TEMPLATE] → 1.0.0
-Added sections:
-  - Core Principles (7 principles)
-  - Technology Stack & Platform Constraints
-  - Development Workflow
-  - Governance
-
-Modified principles: N/A (initial ratification from template)
-Removed sections: N/A
-
-Templates checked:
-  - .specify/templates/plan-template.md  ✅ Compatible — "Constitution Check" gate present
-  - .specify/templates/spec-template.md  ✅ Compatible — user story + requirements structure aligns
-  - .specify/templates/tasks-template.md ✅ Compatible — task phases align with principles
-  - .specify/templates/constitution-template.md ✅ Source template unchanged
-
-Follow-up TODOs:
-  - Create docs/specs/constitution.md as the human-readable copy (referenced in README)
--->
-
 # Event Management Portal Constitution
 
 ## Core Principles
