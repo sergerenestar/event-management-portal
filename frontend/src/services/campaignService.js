@@ -1,6 +1,6 @@
 export const campaignService = {
   getSegments: async () => [],
-  createCampaign: async (data) => null,
-  sendCampaign: async (id) => {},
+  createCampaign: async (_data) => null,
+  sendCampaign: async (_id) => {},
   getCampaigns: async () => [],
 };

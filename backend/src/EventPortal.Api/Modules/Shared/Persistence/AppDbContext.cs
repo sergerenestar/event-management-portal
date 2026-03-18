@@ -10,6 +10,7 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<AdminUser> AdminUsers => Set<AdminUser>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,22 @@ public class AppDbContext : DbContext
             e.Property(x => x.ExternalObjectId).HasMaxLength(256).IsRequired();
             e.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
             e.Property(x => x.LastLoginAt).HasColumnType("datetime2");
+        });
+
+        modelBuilder.Entity<RefreshToken>(e =>
+        {
+            e.ToTable("RefreshTokens");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.TokenHash).HasMaxLength(512).IsRequired();
+            e.HasIndex(x => x.TokenHash).IsUnique();
+            e.HasIndex(x => x.AdminUserId);
+            e.Property(x => x.ExpiresAt).HasColumnType("datetime2").IsRequired();
+            e.Property(x => x.CreatedAt).HasColumnType("datetime2").IsRequired();
+            e.Property(x => x.IsRevoked).IsRequired().HasDefaultValue(false);
+            e.HasOne(x => x.AdminUser)
+             .WithMany()
+             .HasForeignKey(x => x.AdminUserId)
+             .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

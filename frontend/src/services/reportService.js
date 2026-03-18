@@ -1,5 +1,5 @@
 export const reportService = {
-  generateReport: async (eventId) => null,
-  getReports: async (eventId) => [],
-  getDownloadUrl: async (id) => null,
+  generateReport: async (_eventId) => null,
+  getReports: async (_eventId) => [],
+  getDownloadUrl: async (_id) => null,
 };

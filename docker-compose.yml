@@ -1,0 +1,46 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD:-Dev@1234!}"
+      MSSQL_PID: Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD:-Dev@1234!}' -Q 'SELECT 1' -C"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=EventPortal;User Id=sa;Password=${SA_PASSWORD:-Dev@1234!};TrustServerCertificate=True;MultipleActiveResultSets=True;"
+      Entra__TenantId: "${ENTRA_TENANT_ID:-}"
+      Entra__ClientId: "${ENTRA_CLIENT_ID:-}"
+      Jwt__SigningKey: "${JWT_SIGNING_KEY:-dev-signing-key-min-32-chars-replace}"
+      Cors__AllowedOrigins: "${CORS_ALLOWED_ORIGINS:-http://localhost:3000}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  sqldata:

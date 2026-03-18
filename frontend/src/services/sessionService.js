@@ -1,6 +1,6 @@
 export const sessionService = {
-  createSession: async (data) => null,
-  getSessions: async (eventId) => [],
-  generateSummary: async (id) => {},
-  approveSummary: async (id) => {},
+  createSession: async (_data) => null,
+  getSessions: async (_eventId) => [],
+  generateSummary: async (_id) => {},
+  approveSummary: async (_id) => {},
 };

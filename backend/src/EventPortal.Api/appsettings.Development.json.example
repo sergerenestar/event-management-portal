@@ -1,14 +1,22 @@
 {
-  "AllowedOrigins": "http://localhost:5173",
+  "AllowedHosts": "*",
   "AZURE_KEY_VAULT_ENDPOINT": "",
   "ConnectionStrings": {
     "DefaultConnection": "Server=localhost,1433;Database=EventPortal;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
   },
+  "Cors": {
+    "AllowedOrigins": "http://localhost:5173"
+  },
+  "Entra": {
+    "TenantId": "YOUR_ENTRA_TENANT_ID",
+    "ClientId": "YOUR_ENTRA_CLIENT_ID",
+    "Audience": "YOUR_ENTRA_CLIENT_ID"
+  },
   "Jwt": {
-    "SigningKey": "dev-local-signing-key-must-be-at-least-32-characters-long!",
-    "Issuer": "EventPortal.Api",
-    "Audience": "EventPortal.Frontend",
-    "AccessTokenExpiryMinutes": 15
+    "SigningKey": "dev-signing-key-min-32-chars-replace-this!!",
+    "Issuer": "EventPortal",
+    "Audience": "EventPortalClient",
+    "ExpiryMinutes": 15
   },
   "ApplicationInsights": {
     "ConnectionString": ""

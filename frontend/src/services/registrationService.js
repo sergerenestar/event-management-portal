@@ -1,5 +1,5 @@
 export const registrationService = {
-  getSummary: async (eventId) => null,
-  getDailyTrends: async (eventId) => [],
-  syncRegistrations: async (eventId) => {},
+  getSummary: async (_eventId) => null,
+  getDailyTrends: async (_eventId) => [],
+  syncRegistrations: async (_eventId) => {},
 };

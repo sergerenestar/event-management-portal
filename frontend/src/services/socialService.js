@@ -1,6 +1,6 @@
 export const socialService = {
-  generatePost: async (data) => null,
+  generatePost: async (_data) => null,
   getPosts: async () => [],
-  approvePost: async (id, data) => {},
-  publishPost: async (id) => {},
+  approvePost: async (_id, _data) => {},
+  publishPost: async (_id) => {},
 };

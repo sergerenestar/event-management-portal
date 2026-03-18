@@ -297,8 +297,8 @@ docker compose up --build
 |---|---|
 | Spec-Driven Design (Spec Kit) | ✅ Complete |
 | Constitution and Architecture | ✅ Complete |
-| Sprint 0 — Foundation Scaffold | 🟡 In Progress |
-| Sprint 1 — Authentication | ⬜ Not Started |
+| Sprint 0 — Foundation Scaffold | ✅ Complete |
+| Sprint 1 — Authentication | ✅ Complete |
 | Sprint 2 — Eventbrite + Registration Dashboard | ⬜ Not Started |
 | Sprint 3 — SMS Communication Module | ⬜ Not Started |
 | Sprint 4 — AI Social Media and Publishing | ⬜ Not Started |

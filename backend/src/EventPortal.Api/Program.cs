@@ -1,4 +1,8 @@
+using EventPortal.Api.Modules.Auth.Dtos;
+using EventPortal.Api.Modules.Auth.Repositories;
 using EventPortal.Api.Modules.Auth.Services;
+using EventPortal.Api.Modules.Auth.Validators;
+using FluentValidation;
 using EventPortal.Api.Modules.AuditLogs.Services;
 using EventPortal.Api.Modules.Campaigns.Services;
 using EventPortal.Api.Modules.Events.Services;
@@ -14,6 +18,7 @@ using EventPortal.Api.Modules.SocialPosts.Services;
 using Hangfire;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,20 +49,61 @@ builder.Services.AddApplicationInsightsTelemetry();
 // ── API ───────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// ── Swagger — JWT Bearer padlock ──────────────────────────────────────────
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name        = "Authorization",
+        Type        = SecuritySchemeType.Http,
+        Scheme      = "bearer",
+        BearerFormat = "JWT",
+        In          = ParameterLocation.Header,
+        Description = "Enter your JWT access token (without the 'Bearer ' prefix).",
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id   = "Bearer",
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 // ── CORS ──────────────────────────────────────────────────────────────────
+var allowedOrigins = (builder.Configuration["Cors:AllowedOrigins"] ?? "http://localhost:5173")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-        policy.WithOrigins(builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
+    options.AddPolicy("AllowFrontend", policy =>
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials());
+              .AllowCredentials()); // Required for HttpOnly cookie exchange
 });
+
+// ── Auth Repositories ─────────────────────────────────────────────────────
+builder.Services.AddScoped<IAdminUserRepository, AdminUserRepository>();
+builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+
+// ── Auth Token Service ────────────────────────────────────────────────────
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// ── Entra Token Validator (singleton — shares OIDC key cache across requests) ──
+builder.Services.AddSingleton<IEntraTokenValidator, EntraTokenValidator>();
 
 // ── Module Services ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IValidator<LoginRequestDto>, LoginRequestValidator>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
@@ -81,7 +127,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors();
+app.UseCors("AllowFrontend");  // Must be before UseAuthentication for cookies to work
 app.UseAuthentication();
 app.UseAuthorization();
 

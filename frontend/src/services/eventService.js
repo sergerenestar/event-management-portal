@@ -1,5 +1,5 @@
 export const eventService = {
   getEvents: async () => [],
-  getEvent: async (id) => null,
+  getEvent: async (_id) => null,
   syncEvents: async () => {},
 };

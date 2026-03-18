@@ -10,8 +10,8 @@ public static class JwtConfiguration
     {
         var signingKey = builder.Configuration["Jwt:SigningKey"]
                          ?? throw new InvalidOperationException("Jwt:SigningKey is not configured.");
-        var issuer = builder.Configuration["Jwt:Issuer"] ?? "EventPortal.Api";
-        var audience = builder.Configuration["Jwt:Audience"] ?? "EventPortal.Frontend";
+        var issuer   = builder.Configuration["Jwt:Issuer"]   ?? "EventPortal";
+        var audience = builder.Configuration["Jwt:Audience"] ?? "EventPortalClient";
 
         builder.Services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

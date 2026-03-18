@@ -12,23 +12,35 @@ import SessionsPage from '../../features/content/SessionsPage';
 import SessionIngestionPage from '../../features/content/SessionIngestionPage';
 import SessionSummaryPage from '../../features/content/SessionSummaryPage';
 import ReportsPage from '../../features/reports/ReportsPage';
+import { useAppStore } from '../store/useAppStore';
+
+/** Redirects to /dashboard if an access token is already in-memory. */
+function PublicOnlyRoute({ children }) {
+  const accessToken = useAppStore((s) => s.accessToken);
+  return accessToken ? <Navigate to="/dashboard" replace /> : children;
+}
 
 export default function AppRouter() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      {/* Public — redirect to dashboard if already authenticated */}
+      <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
+
+      {/* Root — always go to dashboard (AuthGuard handles the unauth redirect) */}
       <Route path="/" element={<AuthGuard><Navigate to="/dashboard" replace /></AuthGuard>} />
-      <Route path="/dashboard" element={<AuthGuard><DashboardPage /></AuthGuard>} />
-      <Route path="/events" element={<AuthGuard><EventsListPage /></AuthGuard>} />
-      <Route path="/events/:id" element={<AuthGuard><EventDetailPage /></AuthGuard>} />
-      <Route path="/communications" element={<AuthGuard><CampaignsPage /></AuthGuard>} />
-      <Route path="/communications/new" element={<AuthGuard><CampaignComposerPage /></AuthGuard>} />
-      <Route path="/social" element={<AuthGuard><SocialPostsPage /></AuthGuard>} />
-      <Route path="/social/generate" element={<AuthGuard><PostGeneratorPage /></AuthGuard>} />
-      <Route path="/content" element={<AuthGuard><SessionsPage /></AuthGuard>} />
-      <Route path="/content/new" element={<AuthGuard><SessionIngestionPage /></AuthGuard>} />
-      <Route path="/content/:id" element={<AuthGuard><SessionSummaryPage /></AuthGuard>} />
-      <Route path="/reports" element={<AuthGuard><ReportsPage /></AuthGuard>} />
+
+      {/* Protected routes */}
+      <Route path="/dashboard"           element={<AuthGuard><DashboardPage /></AuthGuard>} />
+      <Route path="/events"              element={<AuthGuard><EventsListPage /></AuthGuard>} />
+      <Route path="/events/:id"          element={<AuthGuard><EventDetailPage /></AuthGuard>} />
+      <Route path="/communications"      element={<AuthGuard><CampaignsPage /></AuthGuard>} />
+      <Route path="/communications/new"  element={<AuthGuard><CampaignComposerPage /></AuthGuard>} />
+      <Route path="/social"              element={<AuthGuard><SocialPostsPage /></AuthGuard>} />
+      <Route path="/social/generate"     element={<AuthGuard><PostGeneratorPage /></AuthGuard>} />
+      <Route path="/content"             element={<AuthGuard><SessionsPage /></AuthGuard>} />
+      <Route path="/content/new"         element={<AuthGuard><SessionIngestionPage /></AuthGuard>} />
+      <Route path="/content/:id"         element={<AuthGuard><SessionSummaryPage /></AuthGuard>} />
+      <Route path="/reports"             element={<AuthGuard><ReportsPage /></AuthGuard>} />
     </Routes>
   );
 }
