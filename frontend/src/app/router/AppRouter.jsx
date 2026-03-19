@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import AuthGuard from '../../features/auth/AuthGuard';
+import AppShell from '../../components/layout/AppShell';
 import LoginPage from '../../features/auth/LoginPage';
 import DashboardPage from '../../features/dashboard/DashboardPage';
 import EventsListPage from '../../features/events/EventsListPage';
@@ -20,27 +21,36 @@ function PublicOnlyRoute({ children }) {
   return accessToken ? <Navigate to="/dashboard" replace /> : children;
 }
 
+/** Authenticates and renders the page inside the full app shell. */
+function ProtectedLayout({ children }) {
+  return (
+    <AuthGuard>
+      <AppShell>{children}</AppShell>
+    </AuthGuard>
+  );
+}
+
 export default function AppRouter() {
   return (
     <Routes>
       {/* Public — redirect to dashboard if already authenticated */}
       <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
 
-      {/* Root — always go to dashboard (AuthGuard handles the unauth redirect) */}
-      <Route path="/" element={<AuthGuard><Navigate to="/dashboard" replace /></AuthGuard>} />
+      {/* Root — always go to dashboard */}
+      <Route path="/" element={<ProtectedLayout><Navigate to="/dashboard" replace /></ProtectedLayout>} />
 
-      {/* Protected routes */}
-      <Route path="/dashboard"           element={<AuthGuard><DashboardPage /></AuthGuard>} />
-      <Route path="/events"              element={<AuthGuard><EventsListPage /></AuthGuard>} />
-      <Route path="/events/:id"          element={<AuthGuard><EventDetailPage /></AuthGuard>} />
-      <Route path="/communications"      element={<AuthGuard><CampaignsPage /></AuthGuard>} />
-      <Route path="/communications/new"  element={<AuthGuard><CampaignComposerPage /></AuthGuard>} />
-      <Route path="/social"              element={<AuthGuard><SocialPostsPage /></AuthGuard>} />
-      <Route path="/social/generate"     element={<AuthGuard><PostGeneratorPage /></AuthGuard>} />
-      <Route path="/content"             element={<AuthGuard><SessionsPage /></AuthGuard>} />
-      <Route path="/content/new"         element={<AuthGuard><SessionIngestionPage /></AuthGuard>} />
-      <Route path="/content/:id"         element={<AuthGuard><SessionSummaryPage /></AuthGuard>} />
-      <Route path="/reports"             element={<AuthGuard><ReportsPage /></AuthGuard>} />
+      {/* Protected routes — all wrapped in AuthGuard + AppShell */}
+      <Route path="/dashboard"          element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
+      <Route path="/events"             element={<ProtectedLayout><EventsListPage /></ProtectedLayout>} />
+      <Route path="/events/:id"         element={<ProtectedLayout><EventDetailPage /></ProtectedLayout>} />
+      <Route path="/communications"     element={<ProtectedLayout><CampaignsPage /></ProtectedLayout>} />
+      <Route path="/communications/new" element={<ProtectedLayout><CampaignComposerPage /></ProtectedLayout>} />
+      <Route path="/social"             element={<ProtectedLayout><SocialPostsPage /></ProtectedLayout>} />
+      <Route path="/social/generate"    element={<ProtectedLayout><PostGeneratorPage /></ProtectedLayout>} />
+      <Route path="/content"            element={<ProtectedLayout><SessionsPage /></ProtectedLayout>} />
+      <Route path="/content/new"        element={<ProtectedLayout><SessionIngestionPage /></ProtectedLayout>} />
+      <Route path="/content/:id"        element={<ProtectedLayout><SessionSummaryPage /></ProtectedLayout>} />
+      <Route path="/reports"            element={<ProtectedLayout><ReportsPage /></ProtectedLayout>} />
     </Routes>
   );
 }

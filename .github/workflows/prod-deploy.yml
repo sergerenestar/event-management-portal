@@ -50,10 +50,12 @@ jobs:
           package: ./publish
           app-settings-json: |
             [
-              { "name": "Entra__TenantId",        "value": "${{ secrets.ENTRA_TENANT_ID }}", "slotSetting": false },
-              { "name": "Entra__ClientId",         "value": "${{ secrets.ENTRA_CLIENT_ID }}", "slotSetting": false },
-              { "name": "Jwt__SigningKey",          "value": "${{ secrets.JWT_SIGNING_KEY }}", "slotSetting": false },
-              { "name": "Cors__AllowedOrigins",    "value": "${{ vars.CORS_ALLOWED_ORIGINS }}", "slotSetting": false }
+              { "name": "Entra__TenantId",              "value": "${{ secrets.ENTRA_TENANT_ID }}", "slotSetting": false },
+              { "name": "Entra__ClientId",               "value": "${{ secrets.ENTRA_CLIENT_ID }}", "slotSetting": false },
+              { "name": "Jwt__SigningKey",                "value": "${{ secrets.JWT_SIGNING_KEY }}", "slotSetting": false },
+              { "name": "Cors__AllowedOrigins",          "value": "${{ vars.CORS_ALLOWED_ORIGINS }}", "slotSetting": false },
+              { "name": "Eventbrite__ApiToken",          "value": "${{ secrets.EVENTBRITE_API_TOKEN }}", "slotSetting": false },
+              { "name": "Eventbrite__OrganizationId",    "value": "${{ secrets.EVENTBRITE_ORGANIZATION_ID }}", "slotSetting": false }
             ]
 
   frontend-deploy:

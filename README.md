@@ -299,7 +299,7 @@ docker compose up --build
 | Constitution and Architecture | ✅ Complete |
 | Sprint 0 — Foundation Scaffold | ✅ Complete |
 | Sprint 1 — Authentication | ✅ Complete |
-| Sprint 2 — Eventbrite + Registration Dashboard | ⬜ Not Started |
+| Sprint 2 — Eventbrite + Registration Dashboard | ✅ Complete |
 | Sprint 3 — SMS Communication Module | ⬜ Not Started |
 | Sprint 4 — AI Social Media and Publishing | ⬜ Not Started |
 | Sprint 5 — YouTube Ingestion and Summaries | ⬜ Not Started |

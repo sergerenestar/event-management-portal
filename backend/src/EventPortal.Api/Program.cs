@@ -1,4 +1,8 @@
 using EventPortal.Api.Modules.Auth.Dtos;
+using EventPortal.Api.Modules.Events.Integrations;
+using EventPortal.Api.Modules.Events.Jobs;
+using EventPortal.Api.Modules.Events.Repositories;
+using EventPortal.Api.Modules.Registrations.Jobs;
 using EventPortal.Api.Modules.Auth.Repositories;
 using EventPortal.Api.Modules.Auth.Services;
 using EventPortal.Api.Modules.Auth.Validators;
@@ -100,6 +104,16 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 // ── Entra Token Validator (singleton — shares OIDC key cache across requests) ──
 builder.Services.AddSingleton<IEntraTokenValidator, EntraTokenValidator>();
+
+// ── Eventbrite HTTP Client ────────────────────────────────────────────────
+builder.Services.AddHttpClient<IEventbriteClient, EventbriteClient>();
+
+// ── Event Repositories ────────────────────────────────────────────────────
+builder.Services.AddScoped<IEventRepository, EventRepository>();
+
+// ── Background Job Classes (resolved by Hangfire from DI) ─────────────────
+builder.Services.AddScoped<EventSyncJob>();
+builder.Services.AddScoped<SnapshotAggregatorJob>();
 
 // ── Module Services ───────────────────────────────────────────────────────
 builder.Services.AddScoped<IAuthService, AuthService>();

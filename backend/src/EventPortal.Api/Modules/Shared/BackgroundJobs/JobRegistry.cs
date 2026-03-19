@@ -1,14 +1,23 @@
+using EventPortal.Api.Modules.Events.Jobs;
+using EventPortal.Api.Modules.Registrations.Jobs;
+using Hangfire;
+
 namespace EventPortal.Api.Modules.Shared.BackgroundJobs;
 
-// All Hangfire recurring jobs are declared here.
-// Feature sprints add their jobs to this registry.
 public static class JobRegistry
 {
     public static void RegisterJobs(IApplicationBuilder app)
     {
-        // Sprint 2+: Register recurring sync jobs here
-        // Example:
-        // var manager = new RecurringJobManager();
-        // manager.AddOrUpdate<EventSyncJob>("event-sync", j => j.ExecuteAsync(CancellationToken.None), "0 */6 * * *");
+        // event-sync — runs every hour
+        RecurringJob.AddOrUpdate<EventSyncJob>(
+            "event-sync",
+            j => j.ExecuteAsync(),
+            Cron.Hourly);
+
+        // snapshot-aggregator — runs daily at midnight UTC
+        RecurringJob.AddOrUpdate<SnapshotAggregatorJob>(
+            "snapshot-aggregator",
+            j => j.ExecuteAsync(),
+            Cron.Daily);
     }
 }

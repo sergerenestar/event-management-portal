@@ -29,6 +29,8 @@ services:
       Entra__ClientId: "${ENTRA_CLIENT_ID:-}"
       Jwt__SigningKey: "${JWT_SIGNING_KEY:-dev-signing-key-min-32-chars-replace}"
       Cors__AllowedOrigins: "${CORS_ALLOWED_ORIGINS:-http://localhost:3000}"
+      Eventbrite__ApiToken: "${EVENTBRITE_API_TOKEN:-}"
+      Eventbrite__OrganizationId: "${EVENTBRITE_ORGANIZATION_ID:-}"
     depends_on:
       db:
         condition: service_healthy

@@ -21,6 +21,11 @@
   "ApplicationInsights": {
     "ConnectionString": ""
   },
+  "Eventbrite": {
+    "ApiToken": "YOUR_EVENTBRITE_PRIVATE_TOKEN",
+    "OrganizationId": "YOUR_EVENTBRITE_ORGANIZATION_ID",
+    "BaseUrl": "https://www.eventbriteapi.com/v3"
+  },
   "Serilog": {
     "MinimumLevel": {
       "Default": "Debug",

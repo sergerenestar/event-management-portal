@@ -24,7 +24,7 @@
 
 **Purpose**: Create all new EF Core entities for Sprint 2 and generate a single migration before any service code is written.
 
-- [ ] T001 Create `Modules/Events/Entities/Event.cs`:
+- [x] T001 Create `Modules/Events/Entities/Event.cs`:
   ```
   Id                     int, PK
   ExternalEventbriteId   nvarchar(128), unique index
@@ -40,7 +40,7 @@
   TicketTypes            ICollection navigation
   Registrations          ICollection navigation
   ```
-- [ ] T002 [P] Create `Modules/Events/Entities/TicketType.cs`:
+- [x] T002 [P] Create `Modules/Events/Entities/TicketType.cs`:
   ```
   Id                     int, PK
   EventId                int, FK → Events.Id
@@ -55,7 +55,7 @@
   Event                  navigation property
   Registrations          ICollection navigation
   ```
-- [ ] T003 [P] Create `Modules/Registrations/Entities/Registration.cs`:
+- [x] T003 [P] Create `Modules/Registrations/Entities/Registration.cs`:
   ```
   Id                     int, PK
   EventId                int, FK → Events.Id
@@ -70,7 +70,7 @@
   Event                  navigation property
   TicketType             navigation property
   ```
-- [ ] T004 [P] Create `Modules/Registrations/Entities/DailyRegistrationSnapshot.cs`:
+- [x] T004 [P] Create `Modules/Registrations/Entities/DailyRegistrationSnapshot.cs`:
   ```
   Id                     int, PK
   EventId                int, FK → Events.Id
@@ -80,13 +80,13 @@
   Event                  navigation property
   TicketType             navigation property
   ```
-- [ ] T005 Register all 4 entities in `AppDbContext`:
+- [x] T005 Register all 4 entities in `AppDbContext`:
   - `DbSet<Event> Events`
   - `DbSet<TicketType> TicketTypes`
   - `DbSet<Registration> Registrations`
   - `DbSet<DailyRegistrationSnapshot> DailyRegistrationSnapshots`
   - `OnModelCreating`: unique index on `Events.ExternalEventbriteId`; index on `Registrations.EventId`; index on `DailyRegistrationSnapshots.EventId + SnapshotDate`; cascade deletes from Event to TicketTypes, Registrations, Snapshots
-- [ ] T006 Generate EF Core migration:
+- [x] T006 Generate EF Core migration:
   ```bash
   cd backend
   dotnet ef migrations add AddEventbriteEntities \
@@ -94,7 +94,7 @@
     --startup-project src/EventPortal.Api \
     --output-dir Modules/Events/Migrations
   ```
-- [ ] T007 Run migration locally:
+- [x] T007 Run migration locally:
   ```bash
   dotnet ef database update \
     --project src/EventPortal.Api \
@@ -109,7 +109,7 @@
 
 **Purpose**: HTTP client for Eventbrite REST API, isolated behind an interface for testability.
 
-- [ ] T008 Add to `appsettings.json`:
+- [x] T008 Add to `appsettings.json`:
   ```json
   "Eventbrite": {
     "ApiToken": "",
@@ -117,28 +117,28 @@
     "BaseUrl": "https://www.eventbriteapi.com/v3"
   }
   ```
-- [ ] T009 [P] Add same keys to `appsettings.Development.json.example` with placeholder values
-- [ ] T010 Create `Modules/Events/Integrations/EventbriteModels.cs` — response DTOs:
+- [x] T009 [P] Add same keys to `appsettings.Development.json.example` with placeholder values
+- [x] T010 Create `Modules/Events/Integrations/EventbriteModels.cs` — response DTOs:
   - `EventbriteEvent`: `id`, `name.text`, `start.utc`, `end.utc`, `venue`, `status`, `logo.url`
   - `EventbriteTicketClass`: `id`, `name`, `cost.value`, `currency`, `capacity`, `quantity_sold`
   - `EventbriteOrder`: `id`, attendees list
   - `EventbriteAttendee`: `id`, `profile.name`, `profile.email`, `checked_in`, `created`
   - `EventbritePagedResponse<T>`: `pagination.page_count`, `pagination.page_number`, data list
-- [ ] T011 Create `Modules/Events/Integrations/IEventbriteClient.cs`:
+- [x] T011 Create `Modules/Events/Integrations/IEventbriteClient.cs`:
   ```csharp
   Task<List<EventbriteEvent>> GetEventsAsync(string organizationId);
   Task<List<EventbriteTicketClass>> GetTicketClassesAsync(string eventId);
   Task<List<EventbriteOrder>> GetOrdersAsync(string eventId);
   Task<List<EventbriteAttendee>> GetAttendeesAsync(string eventId);
   ```
-- [ ] T012 Implement `Modules/Events/Integrations/EventbriteClient.cs`:
+- [x] T012 Implement `Modules/Events/Integrations/EventbriteClient.cs`:
   - Bearer token auth from `Eventbrite:ApiToken`
   - `GetEventsAsync` — `GET /organizations/{orgId}/events/?expand=venue&page_size=50` with pagination loop
   - `GetTicketClassesAsync` — `GET /events/{eventId}/ticket_classes/`
   - `GetOrdersAsync` — `GET /events/{eventId}/orders/?expand=attendees&page_size=100` with pagination loop
   - `GetAttendeesAsync` — `GET /events/{eventId}/attendees/` with pagination loop
   - Retry once on 429 (rate limit) with 1s delay; log errors with correlation ID
-- [ ] T013 Register in `Program.cs`: `builder.Services.AddHttpClient<IEventbriteClient, EventbriteClient>()`
+- [x] T013 Register in `Program.cs`: `builder.Services.AddHttpClient<IEventbriteClient, EventbriteClient>()`
 
 **Checkpoint**: `dotnet build backend/` — 0 errors.
 
@@ -146,7 +146,7 @@
 
 ## Phase 3: Backend — Event Service and Sync Logic
 
-- [ ] T014 Create `Modules/Events/Repositories/IEventRepository.cs`:
+- [x] T014 Create `Modules/Events/Repositories/IEventRepository.cs`:
   ```csharp
   Task<List<Event>> GetAllAsync();
   Task<Event?> GetByIdAsync(int id);
@@ -154,22 +154,22 @@
   Task UpsertAsync(Event ev);
   Task UpsertTicketTypeAsync(TicketType ticketType);
   ```
-- [ ] T015 [P] Create `Modules/Events/Repositories/EventRepository.cs`:
+- [x] T015 [P] Create `Modules/Events/Repositories/EventRepository.cs`:
   - `UpsertAsync` — find by `ExternalEventbriteId`; update if exists, insert if not
   - `UpsertTicketTypeAsync` — find by `ExternalTicketClassId + EventId`; same upsert pattern
-- [ ] T016 Update `Modules/Events/Services/IEventService.cs`:
+- [x] T016 Update `Modules/Events/Services/IEventService.cs`:
   ```csharp
   Task<List<Event>> GetEventsAsync();
   Task<Event?> GetEventByIdAsync(int id);
   Task SyncEventsAsync();
   Task SyncEventDetailAsync(int eventId);
   ```
-- [ ] T017 Implement `Modules/Events/Services/EventService.cs`:
+- [x] T017 Implement `Modules/Events/Services/EventService.cs`:
   - `GetEventsAsync` — return all events from DB ordered by `StartDate` desc
   - `GetEventByIdAsync` — return event with ticket types included
   - `SyncEventsAsync` — call Eventbrite, upsert all events and their ticket classes, audit log `"EventSync"`
   - `SyncEventDetailAsync` — sync orders and attendees for one event, update `QuantitySold`
-- [ ] T018 Register `EventRepository` and `EventService` in `Program.cs`
+- [x] T018 Register `EventRepository` and `EventService` in `Program.cs`
 
 **Checkpoint**: `dotnet build backend/` — 0 errors.
 
@@ -177,7 +177,7 @@
 
 ## Phase 4: Backend — Registration Service and Jobs
 
-- [ ] T019 Update `Modules/Registrations/Services/IRegistrationService.cs`:
+- [x] T019 Update `Modules/Registrations/Services/IRegistrationService.cs`:
   ```csharp
   Task<RegistrationSummaryDto> GetSummaryAsync(int eventId);
   Task<List<TicketTypeSummaryDto>> GetByTicketTypeAsync(int eventId);
@@ -185,18 +185,18 @@
   Task SyncRegistrationsAsync(int eventId);
   Task AggregateSnapshotsAsync(int eventId);
   ```
-- [ ] T020 [P] Create DTOs:
+- [x] T020 [P] Create DTOs:
   - `RegistrationSummaryDto` — `TotalRegistrations`, `TotalCapacity`, `FillRate`, `LastSyncAt`
   - `TicketTypeSummaryDto` — `TicketTypeId`, `Name`, `QuantitySold`, `Capacity`, `Price`, `Currency`
   - `DailySnapshotDto` — `Date`, `Count`, `TicketTypeName`, `TicketTypeId`
-- [ ] T021 Implement `Modules/Registrations/Services/RegistrationService.cs`:
+- [x] T021 Implement `Modules/Registrations/Services/RegistrationService.cs`:
   - `GetSummaryAsync` — aggregate sold/capacity across all ticket types for event
   - `GetByTicketTypeAsync` — per-ticket breakdown with fill percentage
   - `GetDailyTrendsAsync` — query snapshots ordered by date asc, grouped by ticket type
   - `AggregateSnapshotsAsync` — count registrations per day per ticket type, upsert snapshots (idempotent)
-- [ ] T022 [P] Create `Modules/Events/Jobs/EventSyncJob.cs`: calls `IEventService.SyncEventsAsync()`
-- [ ] T023 [P] Create `Modules/Registrations/Jobs/SnapshotAggregatorJob.cs`: loops all events, calls `AggregateSnapshotsAsync` for each
-- [ ] T024 Register recurring jobs in `JobRegistry.cs`:
+- [x] T022 [P] Create `Modules/Events/Jobs/EventSyncJob.cs`: calls `IEventService.SyncEventsAsync()`
+- [x] T023 [P] Create `Modules/Registrations/Jobs/SnapshotAggregatorJob.cs`: loops all events, calls `AggregateSnapshotsAsync` for each
+- [x] T024 Register recurring jobs in `JobRegistry.cs`:
   - `event-sync` — hourly
   - `snapshot-aggregator` — daily
 
@@ -206,13 +206,13 @@
 
 ## Phase 5: Backend — Controllers
 
-- [ ] T025 Implement `Modules/Events/Controllers/EventsController.cs`:
+- [x] T025 Implement `Modules/Events/Controllers/EventsController.cs`:
   - `[Authorize(Policy = "AdminOnly")]`
   - `GET /api/v1/events` → list all events → `200 List<EventSummaryDto>`
   - `GET /api/v1/events/{id}` → event detail → `200 EventDetailDto` or `404`
   - `POST /api/v1/events/sync` → enqueue `EventSyncJob` → `202`
-- [ ] T026 [P] Create `EventSummaryDto` and `EventDetailDto` in `Modules/Events/Dtos/`
-- [ ] T027 Implement `Modules/Registrations/Controllers/RegistrationsController.cs`:
+- [x] T026 [P] Create `EventSummaryDto` and `EventDetailDto` in `Modules/Events/Dtos/`
+- [x] T027 Implement `Modules/Registrations/Controllers/RegistrationsController.cs`:
   - `[Authorize]`
   - `GET /api/v1/events/{eventId}/registrations/summary` → `200 RegistrationSummaryDto`
   - `GET /api/v1/events/{eventId}/registrations/by-ticket-type` → `200 List<TicketTypeSummaryDto>`
@@ -225,11 +225,11 @@
 
 ## Phase 6: Backend — Unit Tests
 
-- [ ] T028 [P] Create `tests/EventPortal.Tests/Events/EventServiceTests.cs`:
+- [x] T028 [P] Create `tests/EventPortal.Tests/Events/EventServiceTests.cs`:
   - Sync returns 2 events → both upserted
   - Existing event → updated not duplicated
   - `GetEventsAsync` → ordered by StartDate desc
-- [ ] T029 [P] Create `tests/EventPortal.Tests/Registrations/RegistrationServiceTests.cs`:
+- [x] T029 [P] Create `tests/EventPortal.Tests/Registrations/RegistrationServiceTests.cs`:
   - `GetSummaryAsync` → correct fill rate calculation
   - `GetDailyTrendsAsync` → ordered by date asc
   - `AggregateSnapshotsAsync` → idempotent — running twice produces same result
@@ -240,9 +240,9 @@
 
 ## Phase 7: Frontend — Services
 
-- [ ] T030 Implement `frontend/src/services/eventService.js`:
+- [x] T030 Implement `frontend/src/services/eventService.js`:
   - `getEvents()`, `getEventById(id)`, `syncEvents()`
-- [ ] T031 [P] Implement `frontend/src/services/registrationService.js`:
+- [x] T031 [P] Implement `frontend/src/services/registrationService.js`:
   - `getSummary(eventId)`, `getByTicketType(eventId)`, `getDailyTrends(eventId)`, `syncRegistrations(eventId)`
 
 **Checkpoint**: `npm run build` — 0 errors.
@@ -251,12 +251,13 @@
 
 ## Phase 8: Frontend — Events List Page
 
-- [ ] T032 Implement `frontend/src/features/events/EventsListPage.jsx`:
+- [x] T032 Implement `frontend/src/features/events/EventsListPage.jsx`:
   - MUI `Table`: thumbnail, name, date, venue, status chip, total registrations
   - "Sync from Eventbrite" button → `syncEvents()` → success snackbar
   - MUI `Skeleton` loading state; `EmptyState` when empty
   - Row click → navigate to `/events/{id}`
-- [ ] T033 [P] Create `frontend/src/features/events/EventStatusChip.jsx`:
+- [x] T033 [P] Create `frontend/src/features/events/EventStatusChip.jsx`:
+- make  everything visualy appealing but not flashy
   - MUI `Chip` — `live` = green, `ended` = gray, `draft` = amber, `cancelled` = red
 
 **Checkpoint**: `/events` renders after sync.
@@ -265,15 +266,16 @@
 
 ## Phase 9: Frontend — Event Detail Page
 
-- [ ] T034 Implement `frontend/src/features/events/EventDetailPage.jsx`:
+- [x] T034 Implement `frontend/src/features/events/EventDetailPage.jsx`:
   - `Promise.all` — fetch event, summary, ticket types, daily trends in parallel
   - Top section: event name, dates, venue, status
   - 3 stat cards: total registrations, capacity, fill rate %
   - Ticket types table + daily trend chart
   - "Sync Registrations" button
-- [ ] T035 [P] Create `frontend/src/features/events/TicketTypesTable.jsx`:
+  - make  everything visualy appealing but not flashy
+- [x] T035 [P] Create `frontend/src/features/events/TicketTypesTable.jsx`:
   - MUI `Table` with fill % as `LinearProgress` bar
-- [ ] T036 [P] Create `frontend/src/features/events/DailyTrendChart.jsx`:
+- [x] T036 [P] Create `frontend/src/features/events/DailyTrendChart.jsx`:
   - Recharts `LineChart` — one `Line` per ticket type
   - `ResponsiveContainer width="100%" height={320}`
   - `Tooltip` + `Legend` + `XAxis` (date) + `YAxis` (count)
@@ -284,11 +286,12 @@
 
 ## Phase 10: Frontend — Dashboard Page
 
-- [ ] T037 Implement `frontend/src/features/dashboard/DashboardPage.jsx`:
+- [x] T037 Implement `frontend/src/features/dashboard/DashboardPage.jsx`:
   - Stat row: total events, total registrations, next upcoming event
   - Event grid: up to 6 `EventCard` components + "View all" link
-- [ ] T038 [P] Create `frontend/src/features/dashboard/EventCard.jsx`:
+- [x] T038 [P] Create `frontend/src/features/dashboard/EventCard.jsx`:
   - MUI `Card`: thumbnail, name, date, registration progress bar
+  - make  everything visualy appealing but not flashy
 
 **Checkpoint**: `/dashboard` shows real event data.
 
@@ -296,14 +299,15 @@
 
 ## Phase 11: Frontend — App Shell and Sidebar Navigation
 
-- [ ] T039 Update `frontend/src/components/layout/Sidebar.jsx`:
+- [x] T039 Update `frontend/src/components/layout/Sidebar.jsx`:
   - MUI permanent `Drawer` (240px)
   - Nav items: Dashboard, Events, Campaigns, Social Posts, Sessions, Reports
   - Active item highlighted via `useLocation()`
-- [ ] T040 [P] Update `frontend/src/components/layout/AppShell.jsx`:
+- [x] T040 [P] Update `frontend/src/components/layout/AppShell.jsx`:
   - Flex layout: Sidebar (240px) + content area
-- [ ] T041 Update `frontend/src/app/router/AppRouter.jsx`:
+- [x] T041 Update `frontend/src/app/router/AppRouter.jsx`:
   - All protected routes wrapped in `<AppShell>`
+  - make  everything visualy appealing but not flashy
 
 **Checkpoint**: Sidebar visible on all protected pages. Navigation works.
 
@@ -311,9 +315,9 @@
 
 ## Phase 12: Docker and CI/CD Updates
 
-- [ ] T042 Update `docker-compose.yml`: add `Eventbrite__ApiToken` and `Eventbrite__OrganizationId` env vars
-- [ ] T043 [P] Update `.env.example`: `EVENTBRITE_API_TOKEN=` and `EVENTBRITE_ORGANIZATION_ID=`
-- [ ] T044 [P] Update `dev-deploy.yml` and `prod-deploy.yml`: add Eventbrite secrets to backend deploy env
+- [x] T042 Update `docker-compose.yml`: add `Eventbrite__ApiToken` and `Eventbrite__OrganizationId` env vars
+- [x] T043 [P] Update `.env.example`: `EVENTBRITE_API_TOKEN=` and `EVENTBRITE_ORGANIZATION_ID=`
+- [x] T044 [P] Update `dev-deploy.yml` and `prod-deploy.yml`: add Eventbrite secrets to backend deploy env
 
 ---
 
