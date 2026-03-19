@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
+import { InteractionStatus } from '@azure/msal-browser';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Paper from '@mui/material/Paper';
@@ -7,31 +9,76 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 import LoadingSpinner from '../../components/feedback/LoadingSpinner';
 import ErrorAlert from '../../components/feedback/ErrorAlert';
-import { loginWithMicrosoft, loginWithGoogle, exchangeEntraToken } from '../../services/authService';
+import {
+  loginWithMicrosoft,
+  loginWithGoogle,
+  handleRedirectResult,
+  exchangeEntraToken,
+} from '../../services/authService';
 import { useAppStore } from '../../app/store/useAppStore';
 
 export default function LoginPage() {
-  const navigate    = useNavigate();
-  const setSession  = useAppStore((s) => s.setSession);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState(null);
+  const navigate   = useNavigate();
+  const setSession = useAppStore((s) => s.setSession);
 
-  async function handleLogin(providerFn, providerName) {
+  // inProgress tells us when MSAL has finished initialising and processing any
+  // redirect response. We must wait for InteractionStatus.None before calling
+  // handleRedirectPromise() so the result is ready.
+  const { inProgress } = useMsal();
+
+  const [processing, setProcessing] = useState(false);
+  const [error, setError]           = useState(null);
+
+  // ── Handle redirect return ───────────────────────────────────────────────
+  useEffect(() => {
+    // Wait until MSAL finishes its own initialisation / redirect handling
+    if (inProgress !== InteractionStatus.None) return;
+
+    let cancelled = false;
+
+    async function processRedirect() {
+      try {
+        const result = await handleRedirectResult();
+        if (!result || cancelled) return; // no redirect occurred on this page load
+
+        setProcessing(true);
+        // Provider was encoded in the `state` param of the original loginRedirect call
+        const provider = result.state ?? 'Microsoft';
+        const { accessToken, admin } = await exchangeEntraToken(result.idToken, provider);
+        if (!cancelled) {
+          setSession(accessToken, admin);
+          navigate('/dashboard', { replace: true });
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err?.response?.data?.message ?? err?.message ?? 'Sign-in failed. Please try again.');
+          setProcessing(false);
+        }
+      }
+    }
+
+    processRedirect();
+    return () => { cancelled = true; };
+  }, [inProgress, navigate, setSession]);
+
+  // ── Button click handlers ────────────────────────────────────────────────
+  async function handleLogin(providerFn) {
     setError(null);
-    setLoading(true);
+    setProcessing(true);
     try {
-      const idToken = await providerFn();
-      const { accessToken, expiresIn: _expiresIn, admin } = await exchangeEntraToken(idToken, providerName);
-      setSession(accessToken, admin);
-      navigate('/dashboard');
+      // loginRedirect navigates away — setProcessing(false) is never reached on success,
+      // but runs if the redirect itself throws (e.g. popup blocked, config error).
+      await providerFn();
     } catch (err) {
-      setError(err?.response?.data?.message ?? err?.message ?? 'Sign-in failed. Please try again.');
-    } finally {
-      setLoading(false);
+      setError(err?.message ?? 'Sign-in failed. Please try again.');
+      setProcessing(false);
     }
   }
 
-  if (loading) return <LoadingSpinner />;
+  // Show spinner while MSAL is initialising, processing the redirect, or
+  // while we are exchanging the Entra token with our backend.
+  const busy = inProgress !== InteractionStatus.None || processing;
+  if (busy) return <LoadingSpinner />;
 
   return (
     <Box
@@ -58,7 +105,7 @@ export default function LoginPage() {
         <Button
           fullWidth
           variant="contained"
-          onClick={() => handleLogin(loginWithMicrosoft, 'Microsoft')}
+          onClick={() => handleLogin(loginWithMicrosoft)}
           sx={{ mb: 2 }}
         >
           Sign in with Microsoft
@@ -69,7 +116,7 @@ export default function LoginPage() {
         <Button
           fullWidth
           variant="outlined"
-          onClick={() => handleLogin(loginWithGoogle, 'Google')}
+          onClick={() => handleLogin(loginWithGoogle)}
           sx={{ mt: 1 }}
         >
           Sign in with Google

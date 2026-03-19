@@ -4,29 +4,38 @@ import { googleLoginHint, loginRequest, msalInstance } from '../features/auth/ms
 // ── Entra External ID (MSAL) ───────────────────────────────────────────────
 
 /**
- * Opens a Microsoft sign-in popup via MSAL.
- * @returns {Promise<string>} The Entra ID token to exchange with the backend.
+ * Initiates a Microsoft sign-in redirect via MSAL.
+ * The provider name is encoded in `state` so LoginPage can recover it on return.
+ * Returns Promise<void> — the page navigates away immediately.
  */
 export async function loginWithMicrosoft() {
-  const response = await msalInstance.loginPopup(loginRequest);
-  return response.idToken;
+  await msalInstance.loginRedirect({ ...loginRequest, state: 'Microsoft' });
 }
 
 /**
- * Opens a Google sign-in popup via Entra External ID.
+ * Initiates a Google sign-in redirect via Entra External ID.
  * `domain_hint: "google.com"` bypasses the provider picker.
- * @returns {Promise<string>} The Entra ID token to exchange with the backend.
+ * Returns Promise<void> — the page navigates away immediately.
  */
 export async function loginWithGoogle() {
-  const response = await msalInstance.loginPopup(googleLoginHint);
-  return response.idToken;
+  await msalInstance.loginRedirect({ ...googleLoginHint, state: 'Google' });
+}
+
+/**
+ * Processes the redirect response after MSAL returns to the app.
+ * Safe to call alongside MsalProvider — MSAL caches the promise so duplicate
+ * calls return the same AuthenticationResult (or null if no redirect occurred).
+ * @returns {Promise<import('@azure/msal-browser').AuthenticationResult | null>}
+ */
+export async function handleRedirectResult() {
+  return msalInstance.handleRedirectPromise();
 }
 
 // ── Backend API calls ──────────────────────────────────────────────────────
 
 /**
  * Exchanges an Entra ID token for a portal JWT + HttpOnly refresh cookie.
- * @param {string} idToken  - Raw Entra ID token from MSAL loginPopup.
+ * @param {string} idToken  - Raw Entra ID token from MSAL redirect result.
  * @param {string} provider - "Microsoft" | "Google"
  * @returns {Promise<{accessToken: string, expiresIn: number, admin: object}>}
  */
