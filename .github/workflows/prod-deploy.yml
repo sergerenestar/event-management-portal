@@ -50,6 +50,7 @@ jobs:
           package: ./publish
           app-settings-json: |
             [
+              { "name": "AZURE_KEY_VAULT_ENDPOINT",      "value": "${{ secrets.AZURE_KEY_VAULT_ENDPOINT }}", "slotSetting": false },
               { "name": "Entra__TenantId",              "value": "${{ secrets.ENTRA_TENANT_ID }}", "slotSetting": false },
               { "name": "Entra__ClientId",               "value": "${{ secrets.ENTRA_CLIENT_ID }}", "slotSetting": false },
               { "name": "Jwt__SigningKey",                "value": "${{ secrets.JWT_SIGNING_KEY }}", "slotSetting": false },
