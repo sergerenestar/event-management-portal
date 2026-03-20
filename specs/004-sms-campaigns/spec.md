@@ -80,7 +80,7 @@ An admin wants to know how many messages were delivered, failed, or are still pe
 - **FR-005**: System MUST NOT send any SMS without explicit admin approval — no automated or scheduled sends without a human confirmation step.
 - **FR-006**: System MUST record each campaign with its message body, audience criteria, recipient list, send timestamp, and current status.
 - **FR-007**: System MUST track delivery status per campaign (total sent, delivered, failed) and update it as the SMS provider reports back.
-- **FR-008**: System MUST run a background job to poll the SMS provider for delivery status updates on campaigns in Pending status.
+- **FR-008**: System MUST run a background job to poll the SMS provider for delivery status updates on campaigns in Pending status. The job MUST poll every 3–5 minutes for the first hour after send, then drop to every 30 minutes until the campaign reaches a terminal state (all recipients Delivered or Failed) or 24 hours have elapsed, after which polling stops and any remaining Pending recipients are marked as unresolved.
 - **FR-009**: System MUST display a campaign history list showing all past campaigns with their status and delivery summary.
 - **FR-010**: System MUST exclude recipients without a valid phone number from the send and count them as unreachable.
 - **FR-011**: System MUST prevent a campaign from being sent more than once.
@@ -89,7 +89,7 @@ An admin wants to know how many messages were delivered, failed, or are still pe
 ### Key Entities
 
 - **Campaign**: Represents a single SMS communication event. Attributes: message body, audience filter criteria, status (Draft, Sending, Sent, Failed), created timestamp, sent timestamp, total recipients, delivered count, failed count.
-- **CampaignRecipient**: Represents one attendee targeted by a campaign. Attributes: link to Campaign, link to Registration/attendee, phone number at time of send, delivery status (Pending, Delivered, Failed), status updated timestamp.
+- **CampaignRecipient**: Represents one attendee targeted by a campaign. Attributes: link to Campaign, link to Registration/attendee, phone number at time of send, delivery status (Pending, Delivered, Failed), status updated timestamp. The phone number field is **write-once** — it is captured at the moment the campaign is dispatched and must never be updated after that point, ensuring the audit trail reflects exactly who was contacted and at what number.
 
 ---
 
@@ -110,6 +110,6 @@ An admin wants to know how many messages were delivered, failed, or are still pe
 
 - Attendee phone numbers are stored in the Registration data already synced from Eventbrite (Sprint 2). If Eventbrite does not provide phone numbers, a data gap exists that must be addressed separately.
 - Mailchimp SMS API supports audience creation, message dispatch, and delivery status polling.
-- All recipients are assumed to have opted in to communications via their event registration — opt-out management is out of scope for this sprint.
+- All recipients are assumed to have opted in to SMS communications via their event registration. **This is a compliance risk.** SMS marketing is subject to legal opt-in requirements in most markets (TCPA in the US, PECR in the UK, CASL in Canada, and equivalent frameworks elsewhere). This sprint assumes opt-in has been obtained through the registration process, but a formal opt-in and opt-out management mechanism must be scoped and implemented before this feature is used in any production or public-facing context. This is not a technical deferral — it is a legal prerequisite.
 - Campaign scheduling (send at a future time) is out of scope — only immediate send is supported in Sprint 3.
 - Only admins interact with this module — there is no attendee-facing UI.
