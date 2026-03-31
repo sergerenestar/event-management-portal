@@ -113,6 +113,7 @@ builder.Services.AddScoped<IEventRepository, EventRepository>();
 
 // ── Background Job Classes (resolved by Hangfire from DI) ─────────────────
 builder.Services.AddScoped<EventSyncJob>();
+builder.Services.AddScoped<RegistrationSyncJob>();
 builder.Services.AddScoped<SnapshotAggregatorJob>();
 
 // ── Module Services ───────────────────────────────────────────────────────

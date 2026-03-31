@@ -3,4 +3,4 @@
 
 location           = "eastus"
 sql_admin_login    = "sqladmin"
-sql_admin_password = "REPLACE_WITH_STRONG_PASSWORD"
+sql_admin_password = "JesusIsLord!"

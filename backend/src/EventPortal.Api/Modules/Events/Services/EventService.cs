@@ -77,8 +77,8 @@ public class EventService : IEventService
                     Name = tc.Name,
                     Price = tc.Cost is not null ? tc.Cost.Value / 100m : 0m,
                     Currency = tc.Currency,
-                    Capacity = tc.Capacity,
-                    QuantitySold = tc.QuantitySold,
+                    Capacity = tc.Capacity ?? 0,
+                    QuantitySold = tc.QuantitySold ?? 0,
                 };
 
                 await _eventRepo.UpsertTicketTypeAsync(ticketType);
@@ -101,18 +101,42 @@ public class EventService : IEventService
         _logger.LogInformation("Syncing registrations for event {EventId} ({ExternalId})",
             eventId, ev.ExternalEventbriteId);
 
-        var orders = await _eventbriteClient.GetOrdersAsync(ev.ExternalEventbriteId);
+        // Always refresh ticket types first so the lookup is current regardless of
+        // when the last event-metadata sync ran.
+        var ticketClasses = await _eventbriteClient.GetTicketClassesAsync(ev.ExternalEventbriteId);
+        foreach (var tc in ticketClasses)
+        {
+            var ticketType = new TicketType
+            {
+                EventId = eventId,
+                ExternalTicketClassId = tc.Id,
+                Name = tc.Name,
+                Price = tc.Cost is not null ? tc.Cost.Value / 100m : 0m,
+                Currency = tc.Currency,
+                Capacity = tc.Capacity ?? 0,
+                QuantitySold = tc.QuantitySold ?? 0,
+            };
+            await _eventRepo.UpsertTicketTypeAsync(ticketType);
+        }
 
-        // Build a lookup of ExternalTicketClassId -> local TicketType.Id
+        // Build a lookup of ExternalTicketClassId -> local TicketType after the refresh.
         var ticketTypeLookup = await _db.TicketTypes
             .Where(t => t.EventId == eventId)
             .ToDictionaryAsync(t => t.ExternalTicketClassId, t => t);
+
+        var orders = await _eventbriteClient.GetOrdersAsync(ev.ExternalEventbriteId);
 
         foreach (var order in orders)
         {
             foreach (var attendee in order.Attendees)
             {
-                ticketTypeLookup.TryGetValue(attendee.TicketClassId, out var ticketType);
+                if (!ticketTypeLookup.TryGetValue(attendee.TicketClassId, out var ticketType))
+                {
+                    _logger.LogWarning(
+                        "Skipping attendee {AttendeeId} — ticket class {TicketClassId} not found for event {EventId}",
+                        attendee.Id, attendee.TicketClassId, eventId);
+                    continue;
+                }
 
                 var existing = await _db.Registrations.FirstOrDefaultAsync(r =>
                     r.ExternalAttendeeId == attendee.Id);
@@ -122,7 +146,7 @@ public class EventService : IEventService
                     _db.Registrations.Add(new Registration
                     {
                         EventId = eventId,
-                        TicketTypeId = ticketType?.Id ?? 0,
+                        TicketTypeId = ticketType.Id,
                         ExternalOrderId = order.Id,
                         ExternalAttendeeId = attendee.Id,
                         AttendeeName = attendee.Profile?.Name ?? string.Empty,
