@@ -63,9 +63,9 @@ export default function EventsListPage() {
     setSyncing(true);
     try {
       await syncEvents();
-      setSnackbar({ open: true, message: 'Sync started — events will update shortly.', severity: 'success' });
-      // Re-fetch after a brief delay to pick up newly synced events
-      setTimeout(fetchEvents, 2000);
+      setSnackbar({ open: true, message: 'Sync started — refreshing in a moment…', severity: 'success' });
+      // Re-fetch after delay to give the Hangfire job time to complete
+      setTimeout(fetchEvents, 8000);
     } catch {
       setSnackbar({ open: true, message: 'Sync failed. Please try again.', severity: 'error' });
     } finally {
@@ -120,7 +120,7 @@ export default function EventsListPage() {
                 <TableRow
                   key={event.id}
                   hover
-                  onClick={() => navigate(`/events/${event.id}`)}
+                  onClick={() => navigate(`/events/${event.id}/analytics`)}
                   sx={{ cursor: 'pointer' }}
                 >
                   <TableCell>

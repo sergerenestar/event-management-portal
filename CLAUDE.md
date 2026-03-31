@@ -1,6 +1,6 @@
 # event-management-portal Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-16
+Auto-generated from all feature plans. Last updated: 2026-03-25
 
 ## Active Technologies
 
@@ -52,6 +52,7 @@ cd infra/env/dev && terraform init && terraform validate
 ## Recent Changes
 
 - 001-foundation-scaffold: Full scaffold plan, research, data-model, contracts, quickstart authored
+- 005-event-drilldown-dashboard: Drill-down analytics page — location + attendee type + daily trend charts, TicketTypeNameParser in Shared/Utilities
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
