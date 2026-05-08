@@ -64,6 +64,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Open SQL firewall for runner IP
+        run: |
+          RUNNER_IP=$(curl -s https://api.ipify.org)
+          az sql server firewall-rule create \
+            --resource-group rg-eventportal-dev \
+            --server sql-eventportal-dev \
+            --name github-runner-temp \
+            --start-ip-address $RUNNER_IP \
+            --end-ip-address $RUNNER_IP
+
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
         with:
@@ -82,6 +97,15 @@ jobs:
           dotnet ef database update \
             --project src/EventPortal.Api/EventPortal.Api.csproj \
             --connection "${{ secrets.SQL_CONNECTION_STRING }}"
+
+      - name: Remove SQL firewall rule
+        if: always()
+        run: |
+          az sql server firewall-rule delete \
+            --resource-group rg-eventportal-dev \
+            --server sql-eventportal-dev \
+            --name github-runner-temp \
+            --yes
 
   deploy-frontend:
     name: Build, Push & Deploy Frontend
