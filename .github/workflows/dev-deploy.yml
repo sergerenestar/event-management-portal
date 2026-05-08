@@ -72,6 +72,10 @@ jobs:
       - name: Install EF tools
         run: dotnet tool install --global dotnet-ef
 
+      - name: Restore packages
+        working-directory: backend
+        run: dotnet restore src/EventPortal.Api/EventPortal.Api.csproj
+
       - name: Run migrations
         working-directory: backend
         run: |
