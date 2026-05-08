@@ -55,4 +55,28 @@ public class RegistrationsController : ControllerBase
         _jobs.Enqueue<IRegistrationService>(s => s.SyncRegistrationsAsync(eventId));
         return Accepted(new { message = $"Registration sync job enqueued for event {eventId}." });
     }
+
+    /// <summary>Returns registration counts grouped by location parsed from ticket type names.</summary>
+    [HttpGet("location-breakdown")]
+    [ProducesResponseType(typeof(LocationBreakdownResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetLocationBreakdown(int eventId)
+    {
+        var eventExists = await _registrationService.EventExistsAsync(eventId);
+        if (!eventExists) return NotFound(new { title = "Event not found", status = 404, detail = $"No event with ID {eventId} exists." });
+        var result = await _registrationService.GetLocationBreakdownAsync(eventId);
+        return Ok(result);
+    }
+
+    /// <summary>Returns registration counts split by attendee type (Adult/Children/Other) from ticket type names.</summary>
+    [HttpGet("attendee-type-breakdown")]
+    [ProducesResponseType(typeof(AttendeeTypeBreakdownResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAttendeeTypeBreakdown(int eventId)
+    {
+        var eventExists = await _registrationService.EventExistsAsync(eventId);
+        if (!eventExists) return NotFound(new { title = "Event not found", status = 404, detail = $"No event with ID {eventId} exists." });
+        var result = await _registrationService.GetAttendeeTypeBreakdownAsync(eventId);
+        return Ok(result);
+    }
 }

@@ -1,7 +1,7 @@
 variable "location" {
   type        = string
   description = "Azure region for all resources"
-  default     = "eastus"
+  default     = "westus2"
 }
 
 variable "sql_admin_login" {

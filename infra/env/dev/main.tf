@@ -8,7 +8,7 @@ terraform {
   }
   backend "azurerm" {
     resource_group_name  = "rg-eventportal-tfstate"
-    storage_account_name = "steventportaltfstate"
+    storage_account_name = "cmfieventportaltfstate"
     container_name       = "tfstate"
     key                  = "dev.terraform.tfstate"
   }
@@ -45,8 +45,6 @@ module "monitoring" {
   app_insights_name   = "appi-${local.prefix}-${local.environment}"
 }
 
-# Key Vault created before app_service so we can pass vault_uri into app settings.
-# The app service's managed identity is granted access via a separate policy below.
 module "key_vault" {
   source                   = "../../modules/key_vault"
   resource_group_name      = azurerm_resource_group.this.name
@@ -62,7 +60,7 @@ module "storage" {
   resource_group_name = azurerm_resource_group.this.name
   location            = var.location
   environment         = local.environment
-  account_name        = "st${local.prefix}dev"
+  account_name        = "stcmfieventportaldev"
 }
 
 module "sql_database" {
@@ -76,30 +74,30 @@ module "sql_database" {
   administrator_login_password = var.sql_admin_password
 }
 
-module "app_service" {
-  source                         = "../../modules/app_service"
-  resource_group_name            = azurerm_resource_group.this.name
-  location                       = var.location
-  environment                    = local.environment
-  app_service_plan_name          = "plan-${local.prefix}-${local.environment}"
-  app_name                       = "app-${local.prefix}-${local.environment}"
-  key_vault_uri                  = module.key_vault.vault_uri
-  app_insights_connection_string = module.monitoring.app_insights_connection_string
-}
-
-# Grant the App Service managed identity read access to Key Vault secrets
-resource "azurerm_key_vault_access_policy" "app_service" {
-  key_vault_id = module.key_vault.vault_id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = module.app_service.principal_id
-
-  secret_permissions = ["Get", "List"]
-}
-
-module "static_web_app" {
-  source              = "../../modules/static_web_app"
+module "container_registry" {
+  source              = "../../modules/container_registry"
   resource_group_name = azurerm_resource_group.this.name
   location            = var.location
   environment         = local.environment
-  app_name            = "stapp-${local.prefix}-${local.environment}"
+  registry_name       = "acreventportaldev"
+}
+
+module "container_apps" {
+  source                         = "../../modules/container_apps"
+  resource_group_name            = azurerm_resource_group.this.name
+  location                       = var.location
+  environment                    = local.environment
+  prefix                         = local.prefix
+  log_analytics_workspace_id     = module.monitoring.workspace_id
+  key_vault_uri                  = module.key_vault.vault_uri
+  app_insights_connection_string = module.monitoring.app_insights_connection_string
+  cors_allowed_origins           = "*"
+}
+
+resource "azurerm_key_vault_access_policy" "container_app" {
+  key_vault_id = module.key_vault.vault_id
+  tenant_id    = data.azurerm_client_config.current.tenant_id
+  object_id    = module.container_apps.backend_principal_id
+
+  secret_permissions = ["Get", "List"]
 }

@@ -37,7 +37,7 @@ public class EventbriteClient : IEventbriteClient
 
         do
         {
-            var url = $"organizations/{organizationId}/events/?expand=venue&page_size=50&page={page}";
+            var url = $"organizations/{organizationId}/events/?expand=venue&status=all&order_by=start_desc&page_size=50&page={page}";
             var response = await GetWithRetryAsync<EventbritePagedResponse<EventbriteEvent>>(url);
             if (response?.Events != null)
                 results.AddRange(response.Events);

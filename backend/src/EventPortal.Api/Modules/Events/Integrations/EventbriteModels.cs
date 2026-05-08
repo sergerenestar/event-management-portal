@@ -68,10 +68,10 @@ public class EventbriteTicketClass
     public string Currency { get; set; } = string.Empty;
 
     [JsonPropertyName("capacity")]
-    public int Capacity { get; set; }
+    public int? Capacity { get; set; }  // null means unlimited capacity on Eventbrite
 
     [JsonPropertyName("quantity_sold")]
-    public int QuantitySold { get; set; }
+    public int? QuantitySold { get; set; }
 }
 
 public class EventbriteCost

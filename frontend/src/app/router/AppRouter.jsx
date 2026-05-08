@@ -5,6 +5,7 @@ import LoginPage from '../../features/auth/LoginPage';
 import DashboardPage from '../../features/dashboard/DashboardPage';
 import EventsListPage from '../../features/events/EventsListPage';
 import EventDetailPage from '../../features/events/EventDetailPage';
+import EventAnalyticsPage from '../../features/events/EventAnalyticsPage';
 import CampaignsPage from '../../features/communications/CampaignsPage';
 import CampaignComposerPage from '../../features/communications/CampaignComposerPage';
 import SocialPostsPage from '../../features/social/SocialPostsPage';
@@ -43,6 +44,7 @@ export default function AppRouter() {
       <Route path="/dashboard"          element={<ProtectedLayout><DashboardPage /></ProtectedLayout>} />
       <Route path="/events"             element={<ProtectedLayout><EventsListPage /></ProtectedLayout>} />
       <Route path="/events/:id"         element={<ProtectedLayout><EventDetailPage /></ProtectedLayout>} />
+      <Route path="/events/:id/analytics" element={<ProtectedLayout><EventAnalyticsPage /></ProtectedLayout>} />
       <Route path="/communications"     element={<ProtectedLayout><CampaignsPage /></ProtectedLayout>} />
       <Route path="/communications/new" element={<ProtectedLayout><CampaignComposerPage /></ProtectedLayout>} />
       <Route path="/social"             element={<ProtectedLayout><SocialPostsPage /></ProtectedLayout>} />

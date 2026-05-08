@@ -232,3 +232,6 @@ pnpm-debug.log*
 
 # Generated docs (build output, not source)
 docs/generated/
+migrate-tenant.sh
+create-entra-app.sh
+.claude/settings.local.json
