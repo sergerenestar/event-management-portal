@@ -15,3 +15,8 @@ variable "sql_admin_password" {
   description = "SQL Server administrator password"
   sensitive   = true
 }
+
+variable "cors_allowed_origins" {
+  type        = string
+  description = "Comma-separated list of allowed CORS origins for the backend"
+}

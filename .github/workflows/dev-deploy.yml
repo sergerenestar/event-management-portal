@@ -9,17 +9,60 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  AZURE_WEBAPP_NAME: app-eventportal-dev
-  AZURE_STATICAPP_NAME: stapp-eventportal-dev
+  ACR_NAME: acreventportaldev
+  BACKEND_APP:    ca-backend-eventportal-dev
+  FRONTEND_APP:   ca-frontend-eventportal-dev
+  RESOURCE_GROUP: rg-eventportal-dev
 
 jobs:
-  backend-deploy:
-    name: Build & Deploy Backend (dev)
+  deploy-backend:
+    name: Build, Push & Deploy Backend
     runs-on: ubuntu-latest
     environment: dev
-    defaults:
-      run:
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret:   ${{ secrets.AZURE_CLIENT_SECRET }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build & Push backend image
         working-directory: backend
+        run: |
+          IMAGE=${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+          docker build -t $IMAGE .
+          docker push $IMAGE
+
+      - name: Configure ACR credentials on Container App
+        run: |
+          ACR_PASS=$(az acr credential show --name ${{ env.ACR_NAME }} --query passwords[0].value -o tsv)
+          az containerapp registry set \
+            --name            ${{ env.BACKEND_APP }} \
+            --resource-group  ${{ env.RESOURCE_GROUP }} \
+            --server          ${{ env.ACR_NAME }}.azurecr.io \
+            --username        ${{ env.ACR_NAME }} \
+            --password        "$ACR_PASS"
+
+      - name: Deploy new backend image
+        run: |
+          az containerapp update \
+            --name           ${{ env.BACKEND_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image          ${{ env.ACR_NAME }}.azurecr.io/backend:${{ github.sha }}
+
+  migrate-database:
+    name: Run EF Migrations
+    runs-on: ubuntu-latest
+    environment: dev
+    needs: deploy-backend
 
     steps:
       - uses: actions/checkout@v4
@@ -29,69 +72,60 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Publish
+      - name: Install EF tools
+        run: dotnet tool install --global dotnet-ef
+
+      - name: Run migrations
+        working-directory: backend
         run: |
-          dotnet publish src/EventPortal.Api/EventPortal.Api.csproj \
-            -c Release \
-            -o ../publish
+          dotnet ef database update \
+            --project src/EventPortal.Api/EventPortal.Api.csproj \
+            --connection "${{ secrets.SQL_CONNECTION_STRING }}"
 
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy to App Service
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: ./publish
-          app-settings-json: |
-            [
-              { "name": "AZURE_KEY_VAULT_ENDPOINT",      "value": "${{ secrets.AZURE_KEY_VAULT_ENDPOINT }}", "slotSetting": false },
-              { "name": "Entra__TenantId",              "value": "${{ secrets.ENTRA_TENANT_ID }}", "slotSetting": false },
-              { "name": "Entra__ClientId",               "value": "${{ secrets.ENTRA_CLIENT_ID }}", "slotSetting": false },
-              { "name": "Jwt__SigningKey",                "value": "${{ secrets.JWT_SIGNING_KEY }}", "slotSetting": false },
-              { "name": "Cors__AllowedOrigins",          "value": "${{ vars.CORS_ALLOWED_ORIGINS }}", "slotSetting": false },
-              { "name": "Eventbrite__ApiToken",          "value": "${{ secrets.EVENTBRITE_API_TOKEN }}", "slotSetting": false },
-              { "name": "Eventbrite__OrganizationId",    "value": "${{ secrets.EVENTBRITE_ORGANIZATION_ID }}", "slotSetting": false }
-            ]
-
-  frontend-deploy:
-    name: Build & Deploy Frontend (dev)
+  deploy-frontend:
+    name: Build, Push & Deploy Frontend
     runs-on: ubuntu-latest
     environment: dev
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node 20
-        uses: actions/setup-node@v4
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          client-id:       ${{ secrets.AZURE_CLIENT_ID }}
+          client-secret:   ${{ secrets.AZURE_CLIENT_SECRET }}
+          tenant-id:       ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Install & Build
+      - name: Login to ACR
+        run: az acr login --name ${{ env.ACR_NAME }}
+
+      - name: Build & Push frontend image
+        working-directory: frontend
         run: |
-          npm ci
-          npm run build
-        env:
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_ENTRA_CLIENT_ID: ${{ secrets.ENTRA_CLIENT_ID }}
-          VITE_ENTRA_TENANT_ID: ${{ secrets.ENTRA_TENANT_ID }}
-          VITE_REDIRECT_URI: ${{ vars.VITE_REDIRECT_URI }}
+          IMAGE=${{ env.ACR_NAME }}.azurecr.io/frontend:${{ github.sha }}
+          docker build \
+            --build-arg VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL }} \
+            --build-arg VITE_ENTRA_CLIENT_ID=${{ secrets.ENTRA_CLIENT_ID }} \
+            --build-arg VITE_ENTRA_TENANT_ID=${{ secrets.ENTRA_TENANT_ID }} \
+            --build-arg VITE_REDIRECT_URI=${{ vars.VITE_REDIRECT_URI }} \
+            -t $IMAGE .
+          docker push $IMAGE
 
-      - name: Deploy to Static Web App
-        uses: azure/static-web-apps-deploy@v1
-        with:
-          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_DEV }}
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          action: "upload"
-          app_location: "frontend"
-          output_location: "dist"
-          skip_app_build: true
+      - name: Configure ACR credentials on Container App
+        run: |
+          ACR_PASS=$(az acr credential show --name ${{ env.ACR_NAME }} --query passwords[0].value -o tsv)
+          az containerapp registry set \
+            --name            ${{ env.FRONTEND_APP }} \
+            --resource-group  ${{ env.RESOURCE_GROUP }} \
+            --server          ${{ env.ACR_NAME }}.azurecr.io \
+            --username        ${{ env.ACR_NAME }} \
+            --password        "$ACR_PASS"
+
+      - name: Deploy new frontend image
+        run: |
+          az containerapp update \
+            --name           ${{ env.FRONTEND_APP }} \
+            --resource-group ${{ env.RESOURCE_GROUP }} \
+            --image          ${{ env.ACR_NAME }}.azurecr.io/frontend:${{ github.sha }}

@@ -14,7 +14,9 @@ backend/src/EventPortal.Api/Modules/   # 9 domain modules (Auth, Events, Registr
                                        #   AuditLogs, Shared)
 backend/tests/EventPortal.Tests/       # xUnit test project
 frontend/src/                          # React + Vite (features/, components/, services/)
-infra/modules/                         # Terraform reusable modules (6 Azure services)
+infra/modules/                         # Terraform reusable modules (6): container_apps,
+                                       #   container_registry, key_vault, monitoring,
+                                       #   sql_database, storage
 infra/env/dev|prod/                    # Terraform environment roots
 .github/workflows/                     # pr-check.yml, dev-deploy.yml, prod-deploy.yml
 specs/001-foundation-scaffold/         # Sprint 0 plan, research, data-model, contracts
@@ -53,6 +55,7 @@ cd infra/env/dev && terraform init && terraform validate
 
 - 001-foundation-scaffold: Full scaffold plan, research, data-model, contracts, quickstart authored
 - 005-event-drilldown-dashboard: Drill-down analytics page — location + attendee type + daily trend charts, TicketTypeNameParser in Shared/Utilities
+- infra-containers: Replaced App Service + Static Web App with Azure Container Apps + ACR; updated dev-deploy.yml to build/push Docker images
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
