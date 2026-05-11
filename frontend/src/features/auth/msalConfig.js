@@ -4,9 +4,10 @@ import { PublicClientApplication } from '@azure/msal-browser';
 
 export const msalConfig = {
   auth: {
-    clientId:    import.meta.env.VITE_ENTRA_CLIENT_ID,
-    authority:   `https://login.microsoftonline.com/${import.meta.env.VITE_ENTRA_TENANT_ID}`,
-    redirectUri: import.meta.env.VITE_REDIRECT_URI || 'http://localhost:5173',
+    clientId:                  import.meta.env.VITE_ENTRA_CLIENT_ID,
+    authority:                 `https://login.microsoftonline.com/${import.meta.env.VITE_ENTRA_TENANT_ID}`,
+    redirectUri:               import.meta.env.VITE_REDIRECT_URI || 'http://localhost:5173',
+    navigateToLoginRequestUrl: false,
   },
   cache: {
     // sessionStorage: cleared on tab close — never persists tokens to localStorage
