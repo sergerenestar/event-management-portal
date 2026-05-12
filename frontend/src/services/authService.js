@@ -77,5 +77,5 @@ export async function logout() {
   } catch {
     // Backend logout best-effort — proceed with MSAL sign-out regardless
   }
-  await msalInstance.logoutPopup({ postLogoutRedirectUri: '/' });
+  await msalInstance.logoutRedirect({ postLogoutRedirectUri: '/login' });
 }

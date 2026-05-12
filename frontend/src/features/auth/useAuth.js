@@ -16,11 +16,11 @@ export function useAuth() {
   const clearSession  = useAppStore((s) => s.clearSession);
 
   async function logout() {
+    clearSession(); // wipe in-memory state before the page navigates away
     try {
-      await authServiceLogout(); // revokes refresh cookie + MSAL sign-out
-    } finally {
-      clearSession();
-      navigate('/login');
+      await authServiceLogout(); // revokes refresh cookie, then full-page redirect to /login
+    } catch {
+      navigate('/login'); // fallback if logoutRedirect itself throws
     }
   }
 
