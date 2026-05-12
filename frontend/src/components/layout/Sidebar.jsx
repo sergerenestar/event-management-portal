@@ -8,23 +8,10 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-import AssessmentIcon from '@mui/icons-material/Assessment';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
-import CampaignIcon from '@mui/icons-material/Campaign';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ShareIcon from '@mui/icons-material/Share';
-import VideoLibraryIcon from '@mui/icons-material/VideoLibrary';
+import NAV_ITEMS from './navItems';
 
 const DRAWER_WIDTH = 240;
-
-const NAV_ITEMS = [
-  { label: 'Dashboard',    path: '/dashboard',       icon: <DashboardIcon fontSize="small" /> },
-  { label: 'Events',       path: '/events',          icon: <CalendarMonthIcon fontSize="small" /> },
-  { label: 'Campaigns',    path: '/communications',  icon: <CampaignIcon fontSize="small" /> },
-  { label: 'Social Posts', path: '/social',          icon: <ShareIcon fontSize="small" /> },
-  { label: 'Sessions',     path: '/content',         icon: <VideoLibraryIcon fontSize="small" /> },
-  { label: 'Reports',      path: '/reports',         icon: <AssessmentIcon fontSize="small" /> },
-];
 
 function isActive(pathname, itemPath) {
   if (itemPath === '/dashboard') return pathname === '/dashboard';
@@ -63,7 +50,7 @@ export default function Sidebar() {
 
       {/* Nav items */}
       <List sx={{ px: 1, pt: 1 }}>
-        {NAV_ITEMS.map(({ label, path, icon }) => {
+        {NAV_ITEMS.map(({ label, path, Icon }) => {
           const active = isActive(pathname, path);
           return (
             <ListItem key={path} disablePadding sx={{ mb: 0.25 }}>
@@ -81,7 +68,7 @@ export default function Sidebar() {
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 36, color: active ? 'primary.main' : 'text.secondary' }}>
-                  {icon}
+                  <Icon fontSize="small" />
                 </ListItemIcon>
                 <ListItemText
                   primary={label}
