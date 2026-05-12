@@ -16,8 +16,10 @@ export default function TopBar() {
         </Typography>
 
         {admin && (
-          <Box display="flex" alignItems="center" gap={2}>
-            <Typography variant="body2">{admin.displayName}</Typography>
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography variant="body2" sx={{ display: { xs: 'none', sm: 'block' } }}>
+              {admin.displayName}
+            </Typography>
             <Button color="inherit" variant="outlined" size="small" onClick={logout}>
               Sign Out
             </Button>
